@@ -1,0 +1,38 @@
+---
+# templates/rollout.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ include "vote-app.fullname" . }}
+  labels:
+    {{- include "vote-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "vote-app.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- if eq .Values.deploymentStrategy.type "blueGreen" }}
+    blueGreen:
+      autoPromotionEnabled: {{ .Values.blueGreen.autoPromotionEnabled }}
+      autoPromotionSeconds: {{ .Values.blueGreen.autoPromotionSeconds }}
+      activeService: {{ include "vote-app.fullname" . }}
+      previewService: {{ include "vote-app.fullname" . }}-preview
+    {{- else if eq .Values.deploymentStrategy.type "canary" }}
+    canary:
+      stableService: {{ include "vote-app.fullname" . }}
+      canaryService: {{ include "vote-app.fullname" . }}-canary
+      steps:
+        {{- toYaml .Values.canary.steps | nindent 8 }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "vote-app.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

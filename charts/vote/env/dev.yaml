@@ -1,0 +1,19 @@
+---
+# values-dev.yaml
+replicaCount: 2
+
+service: 
+  type: NodePort
+  nodePort: 30055
+
+deploymentStrategy:
+  type: blueGreen
+blueGreen:
+  autoPromotionSeconds: 10
+  previewService:
+    type: NodePort
+    nodePort: 30056
+
+ingress:
+  enabled: false
+

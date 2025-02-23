@@ -1,0 +1,74 @@
+---
+# values.yaml (default values)
+replicaCount: 2
+image:
+  repository: schoolofdevops/vote
+  tag: v2
+  pullPolicy: Always
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 128Mi
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 80
+
+deploymentStrategy:
+  type: blueGreen  # or canary
+
+# Blue-Green specific configurations
+blueGreen:
+  autoPromotionEnabled: true
+  autoPromotionSeconds: 30
+  previewService:
+    enabled: true
+    type: NodePort
+    port: 80
+    targetPort: 80
+    nodePort: 30100
+
+# Canary specific configurations
+canary:
+  steps:
+    - setWeight: 20
+    - pause: {duration: 5m}
+    - setWeight: 40
+    - pause: {duration: 5m}
+    - setWeight: 60
+    - pause: {duration: 5m}
+    - setWeight: 80
+    - pause: {duration: 5m}
+  stableService:
+    enabled: true
+    type: ClusterIP
+    port: 80
+  canaryService:
+    enabled: true
+    type: ClusterIP
+    port: 80
+
+# ArgoCD Application settings
+argocd:
+  enabled: true
+  project: default
+  source:
+    repoURL: https://github.com/yourusername/your-repo
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  name: instavote
+  className: nginx
+  host: example.com
+  path: /
+  pathType: Prefix

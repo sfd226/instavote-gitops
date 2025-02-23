@@ -1,0 +1,21 @@
+---
+# templates/preview-service.yaml
+{{- if and (eq .Values.deploymentStrategy.type "blueGreen") .Values.blueGreen.previewService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vote-app.fullname" . }}-preview
+  labels:
+    {{- include "vote-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.blueGreen.previewService.type }}
+  ports:
+    - port: {{ .Values.blueGreen.previewService.port }}
+      targetPort: {{ .Values.blueGreen.previewService.targetPort }}
+      {{- if and (eq .Values.blueGreen.previewService.type "NodePort") .Values.blueGreen.previewService.nodePort }}
+      nodePort: {{ .Values.blueGreen.previewService.nodePort }}
+      {{- end }}
+      protocol: TCP
+  selector:
+    {{- include "vote-app.selectorLabels" . | nindent 4 }}
+{{- end }}

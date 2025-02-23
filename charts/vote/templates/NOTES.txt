@@ -1,0 +1,38 @@
+{{- if .Values.ingress.enabled }}
+The application is accessible at:
+{{- if eq .Values.deploymentStrategy.type "blueGreen" }}
+====
+Main service: http://<node-ip>:{{ .Values.service.nodePort }}
+Preview service: http://<node-ip>:{{ .Values.blueGreen.previewService.nodePort }}
+{{- else if eq .Values.deploymentStrategy.type "canary" }}
+Stable service: http://<node-ip>:{{ .Values.canary.stableService.nodePort }}
+Canary service: http://<node-ip>:{{ .Values.canary.canaryService.nodePort }}
+==============================================================
+You could also access the stable service with ingress using :
+
+              http://{{ .Values.ingress.host }}
+
+provided you have added the configuration to hosts file 
+(e.g. /etc/hosts) on your local machine. 
+==============================================================
+{{- end }}
+{{- else }}
+The application has been deployed without ingress.
+
+To access the services:
+  kubectl get svc -n {{ .Release.Namespace }}
+
+{{- if eq .Values.deploymentStrategy.type "blueGreen" }}
+For Blue-Green deployment:
+  Active Service: {{ include "vote-app.fullname" . }}
+  Preview Service: {{ include "vote-app.fullname" . }}-preview
+{{- else if eq .Values.deploymentStrategy.type "canary" }}
+For Canary deployment:
+  Stable Service: {{ include "vote-app.fullname" . }}-stable
+  Canary Service: {{ include "vote-app.fullname" . }}-canary
+{{- end }}
+{{- end }}
+
+To check the rollout status:
+  kubectl argo rollouts get rollout {{ include "vote-app.fullname" . }} -n {{ .Release.Namespace }}
+  kubectl argo rollouts status {{ include "vote-app.fullname" . }} -n {{ .Release.Namespace }}

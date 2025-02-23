@@ -1,0 +1,8 @@
+---
+# Chart.yaml
+apiVersion: v2
+name: vote
+description: A Helm chart for Vote Application with Argo Rollouts
+version: 0.1.0
+appVersion: "1.0.1"
+

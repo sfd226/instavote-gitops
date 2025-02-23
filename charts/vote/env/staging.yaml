@@ -1,0 +1,21 @@
+---
+# values-stage.yaml
+
+service: 
+  type: NodePort 
+  nodePort: 30100
+
+replicaCount: 3
+deploymentStrategy:
+  type: blueGreen
+blueGreen:
+  autoPromotionSeconds: 30
+  previewService:
+    type: NodePort
+    nodePort: 30200
+
+ingress:
+  enabled: true
+  name: vote
+  host: staging.vote.example.com
+

@@ -1,0 +1,37 @@
+---
+# templates/canary-service.yaml
+{{- if eq .Values.deploymentStrategy.type "canary" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vote-app.fullname" . }}
+  labels:
+    {{- include "vote-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.canary.stableService.type }}
+  ports:
+    - port: {{ .Values.canary.stableService.port }}
+      protocol: TCP
+      {{- if .Values.canary.stableService.nodePort }}
+      nodePort: {{ .Values.canary.stableService.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "vote-app.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vote-app.fullname" . }}-canary
+  labels:
+    {{- include "vote-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.canary.canaryService.type }}
+  ports:
+    - port: {{ .Values.canary.canaryService.port }}
+      protocol: TCP
+      {{- if .Values.canary.canaryService.nodePort }}
+      nodePort: {{ .Values.canary.canaryService.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "vote-app.selectorLabels" . | nindent 4 }}
+{{- end }}
