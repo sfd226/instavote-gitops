@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: loadtest
+spec:
+  metrics:
+  - name: loadtest-vote
+    provider:
+      job:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: siege
+                image: schoolofdevops/loadtest:v1
+                command:
+                  - siege
+                  - "--concurrent=2"
+                  - "--benchmark"
+                  - "--time=5m"
+                  - "--header='X-Canary: siege'"
+                  - "http://vote.example.com"
+              restartPolicy: Never
+              hostAliases:
+              - ip: "172.18.0.4"
+                hostnames:
+                - "vote.example.com"
+          backoffLimit: 4

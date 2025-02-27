@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: canary-fitness-test
+spec:
+  metrics:
+  - name: canary-fitness
+    interval: 30s
+    count: 3
+    successCondition: result == "true"
+    failureLimit: 1
+    provider:
+      job:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: fitness-test
+                image: curlimages/curl
+                command: ["/bin/sh", "-c"]
+                args:
+                - |
+                  FITNESS_RESULT="false"
+                  CANARY_SERVICE_URL="http://vote-preview.example.com"
+
+                  # Perform the fitness test
+                  RESPONSE=$(curl -s $CANARY_SERVICE_URL)
+
+                  # Check if the response contains the expected string
+                  if [[ "$RESPONSE" == *"Processed by container ID"* ]]; then
+                    FITNESS_RESULT="true"
+                  fi
+
+                  # Return the fitness test result
+                  echo $FITNESS_RESULT
+              restartPolicy: Never
+          backoffLimit: 1

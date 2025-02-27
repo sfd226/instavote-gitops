@@ -1,33 +1,29 @@
----
-# values-prod.yaml
-replicaCount: 4
-
-deploymentStrategy:
-  type: canary
 canary:
   steps:
-    - setWeight: 10
-    - pause: {duration: 10m}
-    - setWeight: 30
-    - pause: {duration: 10m}
-    - setWeight: 50
-    - pause: {duration: 10m}
-    - setWeight: 70
-    - pause: {duration: 10m}
+    - setCanaryScale:
+        replicas: 2
+    - experiment:
+        duration: 3m
+        templates:
+        - name: fitness
+          specRef: canary
+          service:
+            name: experiment
+        analyses:
+          - name: fitness-test
+            templateName: canary-fitness-test
+    - setWeight: 20
+    - pause:
+        duration: 10s
+    - setWeight: 40
+    - pause:
+        duration: 10s
+    - setWeight: 60
+    - analysis:
+        templates:
+        - templateName: loadtest
+        - templateName: latency
+    - setWeight: 80
+    - pause:
+        duration: 10s
     - setWeight: 100
-  stableService:
-    enabled: true
-    type: NodePort
-    port: 80
-    nodePort: 30300
-  canaryService:
-    enabled: true
-    type: NodePort
-    port: 80
-    nodePort: 30400
-
-ingress:
-  enabled: true
-  name: vote
-  host: vote.example.com
-

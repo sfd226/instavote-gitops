@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: latency
+spec:
+  metrics:
+  - name: nginx-latency-ms
+    initialDelay: 1m
+    interval: 1m
+    failureLimit: 2
+    count: 4
+    successCondition: result < 50.0
+    failureCondition: result >= 50.0
+    provider:
+      prometheus:
+        address: http://prom-kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        query: |
+          scalar(
+            1000 * histogram_quantile(0.99,
+              sum(
+                rate(
+                  nginx_ingress_controller_request_duration_seconds_bucket{ingress="vote", exported_namespace="instavote-prod"}[1m]
+                )
+              ) by (le)
+            )
+          )
