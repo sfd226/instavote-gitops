@@ -24,7 +24,7 @@ spec:
       canaryService: {{ include "vote-app.fullname" . }}-canary
       trafficRouting:
         nginx:
-        stableIngress: {{ include "vote-app.fullname" . }}
+        stableIngress: {{ .Values.ingress.name }}
         additionalIngressAnnotations:
           canary-by-header: X-Canary
           canary-by-header-value: siege
